@@ -11,6 +11,7 @@ const RestrCard = (props) => {
         <div className="rest-card-body">
             <div className="card-name">{resData.resName}</div>
             <div className="address">{resData.address}</div>
+            <div className="card-name">{resData.avgRatingString}</div>
         </div>
     </div>
 }
