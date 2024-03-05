@@ -1,3 +1,129 @@
-#name{
-    color: blue;
+* {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    box-shadow: 0 15px 40px -20px rgba(40, 44, 63, .15);
+}
+
+.logo-container {
+    width: 15%;
+}
+
+.logo-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.logo-name {
+    color: #ae0303;
+    text-align: center;
+    font-weight: bolder;
+    margin-bottom: 10px;
+}
+
+.nav-container {
+    width: 40%;
+}
+
+.nav-list {
+    padding-left: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    list-style-type: none;
+    font-weight: bolder;
+    color: #ae0303;
+}
+
+.body-container {
+    width: 90%;
+    margin: auto;
+}
+
+.body-head {
+    opacity: 0.8;
+}
+
+.restr-container {
+    display: flex;
+    flex-wrap: wrap;
+    /* justify-content: space-between; */
+    align-items: center;
+}
+
+.rest-card {
+    cursor: pointer;
+    border-radius: 16px;
+    width: 19%;
+    transition: transform .3s ease-in-out;
+    box-shadow: 0 1px 4px #00000029;
+    margin: 0% 1% 2% 0%;
+}
+
+.rest-card:hover {
+    transform: scale(1.05);
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 3px 10px;
+}
+
+.rest-card-body {
+    padding: 5px 15px 15px 15px;
+    height: 100px;
+}
+.rest-image{
+    border-radius: 16px 16px 0px 0px;
+}
+
+.card-name {
+    color: rgb(67, 66, 66);
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.address {
+    color: #515151;
+    font-size: 13px;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    line-height: 18px;
+    opacity: 0.9;
+    margin-top: 8px;
+}
+
+/* search  */
+.search-container {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    align-items: center;
+    width: 100%;
+    display: flex;
+    overflow: hidden;
+    margin: 16px auto;
+    /* Adjust as needed */
+}
+
+.search-input {
+    flex: 1;
+    border: none;
+    padding: 10px;
+}
+
+.search-button {
+    cursor: pointer;
+    border: none;
+    background: none !important;
+    padding: inherit;
+    height: 38px;
+    width: 43px;
+}
+
+.search-button img {
+    width: 100%;
+    height: 100%;
 }
