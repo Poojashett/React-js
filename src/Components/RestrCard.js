@@ -7,11 +7,13 @@ const RestrCard = (props) => {
     // const resData = props.resData
 
     return <div className="rest-card">
-        <div style={{ height: '160px' }}><img width="100%" height="100%" className="rest-image" src={CDN_URL + resData.cloudinaryImageId} /></div>
+        <div style={{ height: '160px' }}><img width="100%" height="100%" className="rest-image" src={CDN_URL + resData.info.cloudinaryImageId} /></div>
         <div className="rest-card-body">
-            <div className="card-name">{resData.resName}</div>
-            <div className="address">{resData.address}</div>
-            <div className="card-name">{resData.avgRatingString}</div>
+            <div className="d-flex">
+                <div className="card-name">{resData.info.name}</div>
+            </div>
+            <div className="address">{resData.info.locality}</div>
+            <div className="card-name">{resData.info.avgRatingString}</div>
         </div>
     </div>
 }
