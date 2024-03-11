@@ -2,6 +2,7 @@ import RestrCard from "./RestrCard";
 import Shimmer from "./Shimmer";
 import resObj from "../utils/mockData";
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 //BODY COMPONENT
 const Body = () => {
@@ -47,14 +48,13 @@ const Body = () => {
                     const filteredlist = listfromresobj.filter((obj) => {
                         return obj.info.avgRatingString > 4.5;
                     })
-                    console.log('filteredlist: ', filteredlist);
-                    setlistfromresobj(filteredlist)
+                    setFilteredrestro(filteredlist)
                 }}>Top Rated Restaurants</button>
             </div>
         </div>
         <div className="restr-container">
             {
-                filteredrestro.map((data) => <RestrCard key={data.info.id} resData={data} />)
+                filteredrestro.map((data) => <Link className="linkcard" to={"/restraunts/" + data?.info?.id} key={data.info.id}><RestrCard key={data.info.id} resData={data} /></Link> )
             }
 
         </div>

@@ -43,7 +43,7 @@
     color: #ae0303;
 }
 
-.login{
+.login {
     cursor: pointer;
     color: #ae0303;
     background-color: white;
@@ -83,7 +83,7 @@
     width: 15%;
     box-shadow: 0 1px 4px #00000029;
     margin: 10% 1% 2% 3%;
-    background-color:rgb(222, 219, 219);
+    background-color: rgb(222, 219, 219);
     height: 223px;
     position: relative;
     overflow: hidden;
@@ -110,7 +110,9 @@
     }
 }
 
-.rest-card {
+.rest-card {}
+
+.linkcard {
     cursor: pointer;
     border-radius: 16px;
     width: 19%;
