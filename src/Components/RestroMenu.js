@@ -39,7 +39,7 @@ const RestroMenu = () => {
 
 
     const { itemCards } = restrodata?.data?.cards[2]?.groupedCard?.cardGroupMap?.REGULAR?.cards[1]?.card?.card || {};
-    console.log('itemCards: ', itemCards);
+    // console.log('itemCards: ', itemCards);
 
     return restrodata.length === null ? (<Shimmer />) : (
         <div className="menu">
