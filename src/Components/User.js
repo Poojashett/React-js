@@ -16,7 +16,6 @@ const User = ({name}) =>{
             <button onClick={
                 ()=>{
                     const result = countone + 1
-                    // console.log('result: ', result);
                     setCountone(result);
                 }
             }>increment the count</button>

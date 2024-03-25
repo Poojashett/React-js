@@ -1,16 +1,19 @@
-import RestrCard from "./RestrCard";
+import RestrCard, { withIsOpenLable } from "./RestrCard";
 import Shimmer from "./Shimmer";
 import resObj from "../utils/mockData";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import useOnlinestatus from "../utils/useOnlinestatus";
 
 //BODY COMPONENT
 const Body = () => {
     const [listfromresobj, setlistfromresobj] = useState([]);
-    const [filteredrestro, setFilteredrestro] =useState([]);
-    const [searchtext , setSearchtext]=useState([""]);
-    
-   
+    const [filteredrestro, setFilteredrestro] = useState([]);
+    const [searchtext, setSearchtext] = useState([""]);
+
+
+    const RestroCardIsOpen = withIsOpenLable(RestrCard);
+
 
     useEffect(() => {
         fetchData()
@@ -25,15 +28,25 @@ const Body = () => {
         setFilteredrestro(finalData)
     }
 
+    const onlinestatus = useOnlinestatus()
+    if (onlinestatus === false) {
+        return <h1>you are offline , plerase check your connection</h1>
+    }
+
     return listfromresobj.length === 0 ? <Shimmer /> : (<div className="body-container">
         <h2 className="body-head">Restaurants with online food delivery</h2>
+        {/* user context  */}
+        <div>
+            <label>username</label>
+            <input />
+        </div>
         <div className="d-flex">
             <div className="search-container">
-                <input type="text" className="search-input" placeholder="Search for restaurants and food..." value={searchtext}  onChange={(e)=>{
+                <input type="text" className="search-input" placeholder="Search for restaurants and food..." value={searchtext} onChange={(e) => {
                     setSearchtext(e.target.value)
-                }}/>
+                }} />
                 <button className="search-button" onClick={
-                    ()=>{
+                    () => {
                         const filteredRestro = listfromresobj.filter((data) => {
                             return data.info.name.toLowerCase().includes(searchtext.toLowerCase());
                         });
@@ -54,7 +67,11 @@ const Body = () => {
         </div>
         <div className="restr-container">
             {
-                filteredrestro.map((data) => <Link className="linkcard" to={"/restraunts/" + data?.info?.id} key={data.info.id}><RestrCard key={data.info.id} resData={data} /></Link> )
+                filteredrestro.map((data) => <Link className="linkcard" to={"/restraunts/" + data?.info?.id} key={data.info.id}>
+                    {
+                        data?.info?.veg ? (<RestroCardIsOpen key={data.info.id} resData={data} />) : (<RestrCard key={data.info.id} resData={data} />)
+                    }
+                </Link>)
             }
 
         </div>

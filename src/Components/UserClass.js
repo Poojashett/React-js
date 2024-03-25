@@ -11,12 +11,10 @@ class UserClass extends React.Component {
             }
         }
 
-        console.log("constructor called")
 
     }
 
     async componentDidMount() {
-        console.log('componentDidMount: called');
         const data = await fetch("https://api.github.com/users/pooja-2001")
         const jsondata = await data.json();
 
@@ -26,16 +24,13 @@ class UserClass extends React.Component {
 
     }
     componentDidUpdate() {
-        console.log("didupdate called")
 
     }
     componentWillUnmount() {
-        console.log('componentWillUnmount: ');
 
     }
 
     render() {
-        console.log("render called")
         const { login, avatar_url } = this.state.userinfo
         return (
             <div className="about-card">

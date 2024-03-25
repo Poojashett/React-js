@@ -1,28 +1,18 @@
-import { useEffect, useState } from "react";
 import Shimmer from "./Shimmer";
 import { CDN_URL } from "../utils/constants";
-import { MENU_URL } from "../utils/constants";
 import { useParams } from "react-router-dom";
+import useRestromenu from "../utils/useRestromenu";
+import RestroCategory from "../Components/RestroCategory"
+import { useState } from "react";
+
 
 const RestroMenu = () => {
+    const { resId } = useParams();
+    
+    const [showIndex , setShowIndex] = useState(0)
 
-    const [restrodata, setRestrodata] = useState([]);
+    const restrodata = useRestromenu(resId)
 
-    const{resId} = useParams()
-
-    useEffect(
-        () => {
-            fetchMenuitem();
-        }, []
-    )
-
-
-
-    const fetchMenuitem = async () => {
-        const data = await fetch( MENU_URL + resId)
-        const getJsondata = await data.json();
-        setRestrodata(getJsondata)
-    }
     if (restrodata.length === null) {
         return <Shimmer />
     }
@@ -39,7 +29,11 @@ const RestroMenu = () => {
 
 
     const { itemCards } = restrodata?.data?.cards[2]?.groupedCard?.cardGroupMap?.REGULAR?.cards[1]?.card?.card || {};
-    // console.log('itemCards: ', itemCards);
+
+    const filteredCategory = restrodata?.data?.cards[2]?.groupedCard?.cardGroupMap?.REGULAR?.cards.filter((item) => {
+        return item.card?.card?.["@type"] === "type.googleapis.com/swiggy.presentation.food.v2.ItemCategory"
+    })
+
 
     return restrodata.length === null ? (<Shimmer />) : (
         <div className="menu">
@@ -50,8 +44,8 @@ const RestroMenu = () => {
             <div>{cuisines}</div>
             <div>{locality}</div>
             <div>{totalRatingsString}</div>
-            <div><img src={CDN_URL + cloudinaryImageId} /></div>
-            <ul>
+            <div><img width="120px" src={CDN_URL + cloudinaryImageId} /></div>
+            <ul >
                 {
                     itemCards?.map((data) => {
                         return <li key={data?.card.info?.id}>{data?.card?.info?.name}</li>
@@ -59,6 +53,16 @@ const RestroMenu = () => {
                 }
 
             </ul>
+
+
+            {/* create accordians */}
+            {/* controlled component  */}
+            {
+                filteredCategory?.map((catdata, index) => {
+                    return <RestroCategory key={index} dataa={catdata?.card?.card} isButtonClicked={index === showIndex ? true : false} setShowIndex = {() => setShowIndex(index)}/>
+                })
+            }
+            
         </div>
     )
 

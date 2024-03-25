@@ -3,6 +3,7 @@
 import User from "./User";
 import UserClass from "./UserClass";
 import React from "react";
+import userContext from "../utils/userContext"
 
 
 class About extends React.Component {
@@ -18,7 +19,6 @@ class About extends React.Component {
  
 
     render(){
-        // console.log("parent render")
         return (
             <div>
                 <h2>about us class comp</h2>
@@ -26,6 +26,11 @@ class About extends React.Component {
                 <User name={"poojaaaaa"} />
                 <div>--------------------------------------------------------</div>
                 <div>class based</div>
+                <userContext.Consumer>
+                    {
+                        (data)=><h1>{data.loggedInUser}</h1>
+                    }
+                </userContext.Consumer>
                 <UserClass name={"passing props pooja from class based component"} />
                 <UserClass name={"second passing props pooja from class based component"} />
             </div>
