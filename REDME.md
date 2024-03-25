@@ -3095,4 +3095,1617 @@ EPIOSDE-9 OPTIMIZING THE APP
 1.CUSTUM HOOK
 why we need it ? - readble , reusabel
 
+2.creating a custom hook in restrauntmenu.js
+ *it is used to fectching the data 
+ 
+ *create on e custpm hook
+      const data = useRestromenu() //always use - use
+
+// const [restrodata, setRestrodata] = useState([]);//insteaed of this
+    
+    const restrodata = useRestromenu() use this
+*by using particular resid i just want that particular restro
+
+*create filw useRestromenu hook under constant , give same menu
+
+*like i angular we used service , same as we used custrom hook
+
+
+in useRestromenu.js
+
+import { useEffect, useState } from "react";
+import { MENU_URL } from "../utils/constants";
+
+
+
+const useRestromenu = (resId) => {
+    //fetch the data
+   
+    const [restrodata, setRestrodata] = useState([])
+    console.log('restrodata: ', restrodata);
+
+    useEffect(() => {
+        fetchMenuitem();
+    }, [])
+
+    const fetchMenuitem = async () => {
+        const data = await fetch(MENU_URL + resId)
+        const getJsondata = await data.json();
+        setRestrodata(getJsondata)
+    }
+
+    return restrodata;
+}
+
+export default useRestromenu;
+
+
+
+//restromenu.js
+
+import Shimmer from "./Shimmer";
+import { CDN_URL } from "../utils/constants";
+import { useParams } from "react-router-dom";
+import useRestromenu from "../utils/useRestromenu";
+
+const RestroMenu = () => {
+    const { resId } = useParams()
+
+    const restrodata = useRestromenu(resId)  //use here
+
+    if (restrodata.length === null) {
+        return <Shimmer />
+    }
+    const {
+        name,
+        areaName,
+        avgRating,
+        city,
+        cloudinaryImageId,
+        cuisines,
+        locality,
+        totalRatingsString
+    } = restrodata?.data?.cards[0]?.card?.card?.info || {};
+
+
+    const { itemCards } = restrodata?.data?.cards[2]?.groupedCard?.cardGroupMap?.REGULAR?.cards[1]?.card?.card || {};
+
+    return restrodata.length === null ? (<Shimmer />) : (
+        <div className="menu">
+            <h1>{name}</h1>
+            <div>{areaName}</div>
+            <div>{avgRating}</div>
+            <div>{city}</div>
+            <div>{cuisines}</div>
+            <div>{locality}</div>
+            <div>{totalRatingsString}</div>
+            <div><img src={CDN_URL + cloudinaryImageId} /></div>
+            <ul>
+                {
+                    itemCards?.map((data) => {
+                        return <li key={data?.card.info?.id}>{data?.card?.info?.name}</li>
+                    })
+                }
+
+            </ul>
+        </div>
+    )
+
+}
+
+export default RestroMenu;
+
+-----------------------------------
+3.TASK- create whether the user is online or offline - by using custom hooks
+
+1.Create useOnlinestatus file under contstnt
+ *to check online or offline - use event listner
+ addEventListener("online", (event) => { });
+    ononline = (event) => { };
+
+//these event listner given by window object or browser;
+
+2.We just want to add at only once , add eventlistner only once so use useeffect
+so use useEffect();
+
+3.If eventlistner is offline dont show the cards , return false or if online - show me the card
+
+in custom hook file 
+//check online ststus
+//return online stutus (boolean value)
+
+import { useEffect, useState } from "react";
+
+const useOnlinestatus = () => {
+    
+    const [onlinestatus , setOnlinestatus] = useState(true)
+    //check if online
+    
+    useEffect(()=>{
+
+        window.addEventListener("offline" , ()=>{
+            setOnlinestatus(false)
+        })
+
+        window.addEventListener("online", () => {
+            setOnlinestatus(true)
+        })
+
+    },[])
+
+    return onlinestatus;
+}
+
+export default useOnlinestatus;
+
+
+4,Then import it in body.js where the cards are present
+ const onlinestatus = useOnlinestatus()
+    if(onlinestatus === false){
+        return <h1>you are offline , plerase check your connection</h1>
+    }
+
+5 .Use it in Whole Application
+*create a onlineststus in header.
+    const onlinestatus = useOnlinestatus()
+
+
+<li>Online status
+                    {onlinestatus  ? " yes" : "no"}
+                </li>
+
+
+------------
+4.OPTIMIZING THE APP
+
+CHUNKING OR DYNAMIC BUDLING OR LAZY LOADING OR ONDEMAND LOADING
+
+*size of the js file is increase a lot 
+*actually bundler -- it combines all the code and make into one file 
+*so index.js , taking lot of mb if we write unoptimized code
+*reduce code as much as possible 
+
+//CHUNKING -- Code splitting 
+*to break down our app into smaller logical chunks
+*logically splt our website into smaller bundler
+*so js file - doeanot take time to load
+
+//aDD BUNDLING TO OUR APP
+*lets create instamart inside swiigy 
+*so lets create doifferent bundler for instamart and remaing
+
+1.Grocery.js ---this is the whole big comp , which has lot of child comp
+
+
+
+//USE LAZY LOADING
+*in App.js 
+
+2.const Grocery = lazy()
+
+*lazy() is the function which is given by react
+*it will takes a callback function and we can write a import
+*import() is basically function , and function will take the path of Grocery(where it comes from)
+*now i am not importing grocery comp normally
+*i will import it by using lazy
+
+3.const Grocery = lazy(() =>import("./Components/Grocery") )
+//coment // import Grocery from "./Components/Grocery"
+
+
+4.*WORKING 
+*in the network tab index.js - bundler is present which contains all the code which we have wriiten 
+*now we have applied lazy in grocery comp , so initially in index.js file there is no grocery code
+*when i click on grocery , it will create separate bundler named grocery.js 
+*splitting the bundler - leads to increase our performance
+
+
+5.const Grocery = lazy(() =>import("./Components/Grocery") )when we write this code
+*now we are getting error
+A component suspended while responding to synchronous input.
+
+*when i load the home page first and when i go to grocery grocery.js file bundler takes time to load
+*to handle that state react uses suspense
+*suspense is the comp , which is comes from react library
+
+6.IMPORTING SUSPENSE
+*import React, { lazy , Suspense} from "react";
+*wrap suspense in router pathcomponent
+
+{
+                path: "/grocery",
+                element: <Suspense  fallback={<Shimmer/>}><Grocery /></Suspense> ,
+            }
+
+*fallback is aplace holder , there we can wtite some jsx , this is used like a loader
+*when i naviate to grocery.js , it will take time to load , so just add this loader
+
+
+therefor to reduce the bundle sizw we use lazy loading (so that all the code doeanot come at once)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+EPISODE 10 
+
+1.DIFFERENT WAY ADDING CSS
+ 
+ 1.index.css
+
+ 2.use sass ans sass -Syntactically Awesome Style Sheets , sess
+
+ 3.material ui
+
+ 4.tailwind
+
+ 5.bootsratp
+
+ 6.chakra ui
+
+ 7.Ant deasign - react framework 
+
+
+2.USE TAILWIND CSS TO OUR COMPONENT
+ *first go to tailwind website - getstred - go to frameworks guide  - go to parcel
+*install tailwind css
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+Chapter 11 - Data is the new Oil
+
+1.HIGHER ORDER FUNCTION
+*higher order function is a function that takes a component and then enhances that component and  returns a new component
+
+2.TASK - ADD isOpen LABEL FOR RESTRO CARD
+
+3 IF THE RESTO IS OPEN ADD OPEN CARD
+  
+4.NOW CREATE HIGHER ORDER FUNCTION
+  *create it in same file RestrCard.js
+  *this higher order function will take restrocard as an input and it will return new comp (which is a enhanced retrocard - means restrocard with isopen label)
+
+  1. const withIsOpenLable = (RestrCard) =>{ //TAKE RestrCard AS INPUT
+       }
+
+  2.IT WILL RETURN ANOTHER COMPONENT
+     const withIsOpenLable = (RestrCard) =>{
+       return  () =>{  //return new comp
+
+       }
+    }
+
+  3.export const withIsOpenLable = (RestrCard) => { //just do named export
+    return () => {
+
+        return (<div>
+            <label>isOpen</label>
+            <RestrCard /> //with restrocard isOpen tag is added 
+        </div>)
+
+    }
+  }
+   
+ 4.in body.js , if it isOpen render withIsOpenLable
+   *so import it first
+   import RestrCard, { withIsOpenLable } from "./RestrCard";
+
+5.creatre a variable in body.js
+    const restroCardIsOpen = withIsOpenLable(RestrCard);
+ 
+ *withIsOpenLable it is a higher order function , which we have passed in restro card , it will return us a new comp , which has a label inside it (isOpen)
+ *now restroCardIsOpen is new compnent created with enhanced comp
+
+6.then use this comp
+ <div className="restr-container">
+   {
+ filteredrestro.map((data) => <Link className="linkcard" to={"/restraunts/" + data?.info?.id} key={data.info.id}>
+  {
+    data?.info?.isOpen ? (<restroCardIsOpen key={data.info.id} resData={data} />) : (<RestrCard key={data.info.id} resData={data} />)//also pass pros to new comp i.e restroCardIsOpen
+ }
+ </Link>)
+}
+ </div>
+
+7.THEN we need to recive the props in restrocard.js
+export const withIsOpenLable = (RestrCard) => {
+    return (props) => { //recive the props here
+
+        return (<div>
+            <label>Open</label>
+            <RestrCard {...props} /> //pass data restrocard using spread operator so that all data is passed to restrocard
+        </div>)
+
+    }
+}
+8.WHY WE NEED THIS
+*if we want some extra content without changing the actual card then we can use this higher order function
+
+9.replace with isopen to veg 
+-------------------------------------------------------------------------------------------------------------
+2.TASK - WHEN I CLICK ON PARTICULAR CARD , GO TO DETAIL PAGE AND SHOWS THE RECOMENDED LIST OF THAT RESTRO
+
+  1.IN RESTROMENU.JS  , First filter out the category
+
+    const { itemCards } = restrodata?.data?.cards[2]?.groupedCard?.cardGroupMap?.REGULAR?.cards[1]?.card?.card || {};
+    
+    const filteredCategory = restrodata?.data?.cards[2]?.groupedCard?.cardGroupMap?.REGULAR?.cards.filter((item)=>{
+        return item.card?.card ?.["@type"] === "type.googleapis.com/swiggy.presentation.food.v2.ItemCategory"
+    })
+
+  2.CREATE AN ACCORDIAN WITH HEADING in RESTROMENU.JS
+    *there is many category , so create separate componenet
+
+  3.CREATE RestroCategory.js WHERE WE CAN BUILD ACCORDIAN
+    * const RestroCategory = () =>{
+
+    return (
+        <div>
+           {/* accordian header */}
+           {/* accordian body */}
+
+        </div>
+    )
+}
+export default RestroCategory ;
+
+4.IN RESTROMENU.JS  , IMPORT RestroCategory , so use map , for each category (we should see 20 different category so we use map)
+{
+                filteredCategory?.map((data) => {
+                    return <RestroCategory />
+                })
+            }
+
+5.CREATE HEADER FIRST
+const RestroCategory = (props) =>{
+
+    const {data} = props;
+    const { itemCards } = props?.data;
+    console.log('itemCards: ', itemCards);
+
+    return (
+        <div>
+           {/* accordian header */}
+           <h1>{data?.title} ({itemCards.length})<span>
+            <button>click here</button>
+            </span></h1>
+
+            {/* accordian body */}
+
+
+        </div>
+    )
+}
+export default RestroCategory ;
+
+6,.ON CLICK ON HEADER NEED TO SHOW BODY 
+ *create one more comp itemlist.js  - show all the list
+
+7/FINAL , WHEN I CLICK ON BUTTON NEED TO SHOW LIST , AND WHEN I AGAIN CLICK ON BUTTON NEED TO HIDE IT
+
+import { useState } from "react";
+import ListItem from "./ListItem";
+
+
+
+const RestroCategory = (props) => {
+
+    const { data } = props;
+    const { itemCards } = props?.data;
+    const [isButtonClicked, setIsButtonClicked] = useState(false);
+    console.log('isButtonClicked: ', isButtonClicked);
+
+    return (
+        <div>
+            {/* accordian header */}
+            <h1>{data?.title} ({itemCards.length})<span>
+                <div>
+                    <button onClick={() => setIsButtonClicked(!isButtonClicked)}>
+                        Click here
+                    </button>
+                    {/* accordian body */}
+                    {isButtonClicked && (
+                        <div>
+                            {
+                                itemCards.map((itemdata, index) => {
+                                    return <ListItem key={index} data={itemdata?.card?.info} />
+                                })
+                            }
+                        </div>
+                    )}
+                </div>
+            </span></h1>
+
+
+        </div>
+    )
+}
+export default RestroCategory;
+
+
+LIFTING AND UNLIFTING
+8. when i click on another one , previous one should not expand. -ITSHOULD HIDE - APPLY CONTROLLED AND UNCONTROLLED (LIFTING AND UNLIFTING) ---- VVVVIMPPPPP
+*react developer tools -- add this into your chrome
+*we can go to the component - in network tab , we can see the the props and state
+*all the restrount cat items we have own states 
+const [isButtonClicked, setIsButtonClicked] = useState(false);
+*right now each of the  RestroCategory has power to expand , collapse and show (we have a state to show true or false in restrocategory)
+*now we want its parent (restromenu ) to control all of these (now we have to set it in restro menu)
+
+*now we dont want react hooks or state variable for each category , will remove it;
+
+9.REMOVE INDIVIDUAL STATE VARIABLE , INCLUDE IT IN RESTROMENU
+*IN restromenu.js
+ {/* create accordians */}
+            {
+                filteredCategory?.map((catdata,index) => {
+                    return <RestroCategory key={index} data={catdata?.card?.card} isButtonClicked={false}/> //isButtonClicked={false}  include this
+             })
+  }
+
+*in restrocategory.js , remove the state variable , and recive the props from parent variable
+const RestroCategory = ({ dataa, isButtonClicked}) => {
+    console.log('props: ', dataa);
+    console.log('isButton: ', isButtonClicked);
+
+*Controlled and uncontrolled  - vvvvimp
+*this is the controlled component bcoz restromenu comp is controllinmg restrocategory - controlled
+  controlled comp is relieng upon parents 
+*when it has its own state variabel , it is uncontrolled comp
+
+*now parent has controlled to hide the all accordians , bcoz we set in parent as false
+ {/* create accordians */}
+            {
+                filteredCategory?.map((catdata, index) => {
+                    return <RestroCategory key={index} dataa={catdata?.card?.card} isButtonClicked={false} />
+                })
+            }
+
+*Now we have taken props from parent
+const RestroCategory = ({ dataa, isButtonClicked}) => {
+    return (
+        <div>
+            {/* accordian header */}
+            <h1>{dataa?.title} ({dataa.itemCards.length})<span>
+                <div>
+                    <button>
+                        Click here
+                    </button>
+                    {/* accordian body */}
+                    {isButtonClicked && (
+                        <div>
+                            {
+                                dataa?.itemCards.map((itemdata, index) => {
+                                    return <ListItem key={index} data={itemdata?.card?.info} />
+                                })
+                            }
+                        </div>
+                    )}
+                </div>
+            </span></h1>
+        </div>
+    )
+}
+
+10.NOW USING THIS CONTROLLED COMP , WE NEED TO DO HIDE AND COLLAPSE ON CLICK ON BUTTON
+*if we collapse first one set state as 
+isButtonClicked={index === 0 && true} //only for first item --if index is zero then set true
+ or we can write like this  -  isButtonClicked={index === 0 ? true : false}
+*NOW WE HAVE TO MAKE THIS DYNAMIC
+ - we can build this by using state
+
+    const [showIndex , setShowIndex] = useState(0) //first one should show
+
+*incluse here isButtonClicked={index === showIndex ? true : false}
+
+
+*showindex should show dynamically on click on item - need to alter my showindex
+*when i click on button in child , we should change the statevariable of my parent
+ in retromenu.js//parent comp
+
+    const [showIndex , setShowIndex] = useState(0) //need to set state variable here , eheni click on button in child
+
+{
+                filteredCategory?.map((catdata, index) => {
+                    return <RestroCategory key={index} dataa={catdata?.card?.card} isButtonClicked={index === showIndex ? true : false} />
+                })
+            }
+
+*in restrocategory.js //child comp
+const RestroCategory = ({ dataa, isButtonClicked}) => {
+
+    const handleclick = ()  =>{  //when i click on here , need to set statevarible in parent
+
+    }
+    return (
+        <div>
+            {/* accordian header */}
+            <h1>{dataa?.title} ({dataa.itemCards.length})<span>
+                <div>
+                    <button onClick={handleclick}>
+                        Click here
+                    </button>
+                    
+                    {/* accordian body */}
+                    {isButtonClicked && (
+                        <div>
+                            {
+                                dataa?.itemCards.map((itemdata, index) => {
+                                    return <ListItem key={index} data={itemdata?.card?.info} />
+                                })
+                            }
+                        </div>
+                    )}
+                </div>
+            </span></h1>
+        </div>
+    )
+}
+
+
+*we can pass the function in parent that is setShowIndex 
+ {
+                filteredCategory?.map((catdata, index) => {
+                    return <RestroCategory key={index} dataa={catdata?.card?.card} isButtonClicked={index === showIndex ? true : false} setShowIndex = {() => setShowIndex(index)}/>
+                })
+            }
+
+*pass the usestate function    
+setShowIndex = {() => setShowIndex(index)}
+
+*recive it in child 
+const RestroCategory = ({ dataa, isButtonClicked, setShowIndex }) => {
+    console.log('setShowIndex: ', setShowIndex);
+
+    const handleclick = ()  =>{
+        setShowIndex(); //include here
+    }
+
+
+11.FINAL OUTPUT , WE CAN SEE IT IN COMPONENT IN NETWORK , STATE IS MAINTAINED BY RESTROMENU (PARENT) - CONTROLLED
+code 
+*in Restromenu.js
+    const [showIndex , setShowIndex] = useState(0)
+{
+                filteredCategory?.map((catdata, index) => {
+                    return <RestroCategory key={index} dataa={catdata?.card?.card} isButtonClicked={index === showIndex ? true : false} setShowIndex = {() => setShowIndex(index)}/>
+                })
+            }
+
+*in restrocategory.js
+
+const RestroCategory = ({ dataa, isButtonClicked, setShowIndex }) => {
+    console.log('setShowIndex: ', setShowIndex);
+
+    const handleclick = ()  =>{
+        setShowIndex();
+    }
+    return (
+        <div>
+            {/* accordian header */}
+            <h1>{dataa?.title} ({dataa.itemCards.length})<span>
+                <div>
+                    <button onClick={handleclick}>
+                        Click here
+                    </button>
+
+                    {/* accordian body */}
+                    {isButtonClicked && (
+                        <div>
+                            {
+                                dataa?.itemCards.map((itemdata, index) => {
+                                    return <ListItem key={index} data={itemdata?.card?.info} />
+                                })
+                            }
+                        </div>
+                    )}
+                </div>
+            </span></h1>
+        </div>
+    )
+}
+--------------------------------------------------------------------------------------------------------------------
+3.PROPS DRILLING
+*usually data is passing from prent to child by using props 
+ for ex , restromenu to restrocategory to listitem
+*now the requirment is , if i want to pass the data from restromenu to listitem , how will i pass ? we cant pass it directly
+*we ca pass through restromenu to restrocategory to listitem -but it is not a right way
+*this is called prop drilling
+
+Prop drilling, also known as "props drilling" or "component chaining", refers to the process in React where props are passed from a parent component to a deeply nested child component through several intermediate components. This happens when data needs to be passed down the component tree to a component that is several levels deep.
+
+To mitigate the issues caused by prop drilling, you can use techniques like React Context API or state management libraries like Redux. These approaches allow you to share data across components without the need to pass props manually through each level of the component tree. This can lead to cleaner and more maintainable code, especially in larger applications with complex component hierarchies.
+
+-------------------------------------------------------------------------
+4.React Context API  (to avOID DRILLING)
+*for exam , if we use logged in user name , we want that name in all over page 
+*so create on useContext.js file in utils for React Context API  
+
+*create createContext() which is comming from react , it has some pice of code which react will hold
+*lets create loggedinused , give some default name
+const { createContext } = "react";
+
+const userContext = createContext({
+    loggedInUser: "default"
+})
+
+export default userContext; 
+
+*we can access in anywhere
+
+*WILL ACCESS THIS IN HEADER
+*we can access this by using usecontext hook
+*in header.js
+import { useState, useEffect, useContext } from "react";
+import userContext from "../utils/userContext"
+
+const contectData = useContext(userContext); //then we can use it //we can use every where now , just need to import it
+
+
+*ACCESS THE CONTEXT BY USING CLASS BASED COMPONENT IN ABOUT.JS
+*first import it
+*by using consumer we can access it
+*in html part  <userContext.Consumer></userContext.Consumer> , we need to do like this
+*it takes callback function
+
+ <userContext.Consumer>
+                    {
+                        (data)=><h1>{data.loggedInUser}</h1>  //here we can get the data
+                    }
+                </userContext.Consumer>
+-----------------------
+
+5.USE Context Provider
+  *now the usename is default , if i change the username , by calliung api , in api call if we got the userinfo , use context api
+
+*in app.js
+ const [userName, setUserName] = useState()
+
+    //authentication
+    useEffect(() => {
+        //make an api call
+        const data = {
+            name: "pooja"
+        }
+        setUserName(data.name)
+    })
+ this is the authentication logic
+
+*pass this context api to the app use context provider , wrap whole app by this provider , providing new value to it by using provider
+ return (
+        <userContext.Provider>
+            <div className="main">
+                <Header />
+                <Outlet />
+            </div>
+        </userContext.Provider>
+    )
+
+*return whatever value inside it
+ return (
+        <userContext.Provider value={{loggedInUser : userName}}>
+            <div className="main">
+                <Header />
+                <Outlet />
+            </div>
+        </userContext.Provider>
+    )
+
+*every where it is updated to pooja instead of default
+
+*final code in app.js
+const AppLayout = () => {
+    const [userName, setUserName] = useState()
+
+    //authentication
+    useEffect(() => {
+        //make an api call
+        const data = {
+            name: "pooja"
+        }
+        setUserName(data.name)
+    })
+    return (
+        <userContext.Provider value={{loggedInUser : userName}}>
+            <div className="main">
+                <Header />
+                <Outlet />
+            </div>
+        </userContext.Provider>
+    )
+
+}
+
+*if we wrap it only inside header , value will provide only to header
+ --pooja name is reflected only in header
+
+*WE CAN CHANGE THE VALUE ALSO FOR DIFFERENT COMP
+ return (
+        <div className="main">
+            <userContext.Provider value={{ loggedInUser: "pooja shetty" }}> //for only header it will show pooja shetty
+                <Header />
+            </userContext.Provider>
+            <userContext.Provider value={{ loggedInUser: userName }}> //rest of the comp it will show username from the aipi
+                <Outlet />
+            </userContext.Provider>
+
+        </div>
+    )
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+12.REDUX --Let's Build our Store
+*redux offers easy debugging
+*two libraries we are using now one is Redux Toolkit  another one is react-redux
+
+1.REDUX ARCHITECTURE
+*when i click on add item in food , it should increase the number in cart
+*we have a redux store , inside redux store there is a slice (it is a small portioon of the redux store)
+*we can create multiple slices in redux store
+*to keep logical partitions in redux ,  this logical partitions are redux
+*suppose if we want to add cart data into cart , we can create separate slice for cart data in redux store
+*so in , suppose if we want to create login info , we can create login info slice 
+
+*initially cart slice is empty array
+*when i put data into this , it can just modify to the card slice
+
+1.WHEN I CLICK ON ADD ITEM , HOW DATA WILL GO TO REDUX STORE (CART SLICE)?
+*we cant dirctly add the data to card slice
+*when i click on add item , it dispatches an action , 
+*it calls a function , then this function internally modifys the cart
+*this function is basically known as a reducer , this reducer function is modies our cart ,(which updates the slice of the reudx store) 
+*this is how to write data
+
+2.HOW TO WRITE DATA IS DONE , THEN HOW TO READ DATA?(HOW TO SHOW NUMBER IN CART)?
+*for that we use something known as a selector
+*selector is used to read the data from our store and this selector is used to modify our data in cart comp.
+*this is called subscribing to the stores
+
+2.LETS BUILD OUR STORE
+
+1.INSTALL REDUX TOOLKIT AND REACT-REDUX
+npm install @reduxjs/toolkit
+npm install react-redux
+
+2.CREATE OUR STORE
+*crate store in utils -appStore.js
+*we will use a function that is configurestore to create our own store
+*configureStore  - this will give a atore of our react appliocation- this job is done by reduxjs toolikt
+
+import { configureStore } from "@reduxjs/toolkit";
+const appStore= configureStore();
+export default appStore;
+
+3.ADD THIS STORE TO OUR APPLICATION (PROVIDE THE STORE TO OUR APP)
+*we need to provide our store to the application(root to this application)
+*we need something known as provider that will be import it from react-redux
+*this kind of a bridge between react application and redux (redux store) -this job is done by react-redux
+
+*how to use it?
+*wrap it with whole root comp and it takes store as the prop
+*it will take appStore that we craeted store ; import it from utils
+
+import { Provider } from "react-redux";
+import appStore from "./utils/appStore";
+
+<Provider store={appStore }> //wrap it here
+            <userContext.Provider value={{ loggedInUser: userName }}>
+                <div className="main">
+                    <Header />
+                    <Outlet />
+                </div>
+            </userContext.Provider>
+ </Provider>
+
+4.ADD SLICE (CREATE A CART SLICE);
+*create a cartslice.js in utils
+*cartslice can be created by using a function createslice
+
+import { createSlice } from "@reduxjs/toolkit";
+const cartSlice = createSlice();
+
+*and this function creates a configuration to create a slice
+--first configuration it takes is name 
+   
+name:"cart",
+
+--second one is initialstate it takes the intitial state ,  take item and initialzw with empty array
+
+initialState:{
+            items : []
+        },
+
+--then we have reducers object - here we are writing reducer function 
+  *inside the reducers object we have a action and reducer function is mapped to this
+
+ reducers:{
+            addItem //action : (state , action)=>{ //reducer function
+                console.log('action: ', action);
+                state.items.push(action.payload)
+            }
+        }
+
+
+  *action - add aitem , clear a cart like that
+  *this reducer function modifies the data inside our slice
+  *addItem is the action here
+action -- > reducer function --- > modifies the slice of the store   
+
+  *reducer function takes two parameters , state and an action , it modify the state based on the action
+  *state is nothing but initialstate
+  *it will take the state and push the action.payload
+
+const cartSlice = createSlice(
+    {
+        name:"cart",
+        initialState:{
+            items : []
+        },
+        reducers:{
+            addItem : (state , action)=>{
+                console.log('action: ', action);
+                state.items.push(action.payload)
+            }
+        }
+
+    }
+);
+
+*write another reducer removeItem
+*so we can use pop()
+*removing one item from the top
+
+ removeItem: (state, action) => {
+              state.items.pop()
+  }
+
+
+*create one more reducer clear cart
+-here we need to make array empty , so we dont need action
+clearCart:(state)=>{
+                state.items.length = 0; //it will make array empty
+            } 
+
+
+//reducers
+const cartSlice = createSlice(
+    {
+        name: "cart",
+        initialState: {
+            items: []
+        },
+        reducers: {
+            addItem: (state, action) => {
+                state.items.push(action.payload)
+            },
+            removeItem: (state) => {
+              state.items.pop()
+            },
+            clearCart:(state)=>{
+                state.items.length = 0;
+            }
+        }
+
+    }
+);
+
+*nnow we will export reducer and actions
+export const { addItem, removeItem, clearCart } = cartSlice.actions;
+export default cartSlice.reducer;
+
+
+
+//final code
+import { createSlice } from "@reduxjs/toolkit";
+const cartSlice = createSlice(
+    {
+        name: "cart",
+        initialState: {
+            items: []
+        },
+        reducers: {
+            addItem: (state, action) => {
+                state.items.push(action.payload)
+            },
+            removeItem: (state) => {
+                state.items.pop()
+            },
+            clearCart: (state) => {
+                state.items.length = 0;
+            }
+        }
+
+    }
+);
+
+export const { addItem, removeItem, clearCart } = cartSlice.actions;
+export default cartSlice.reducer;
+
+
+5.ADD SLICE TO OUR STORE
+*add cartreducer in appStore
+in appStore.js
+import { configureStore } from "@reduxjs/toolkit";
+import cartReducer from "../slice/cartSlice"
+
+const appStore= configureStore(
+    {
+        reducer:{
+            cart : cartReducer
+        }
+    }
+);
+
+export default appStore;
+
+6.READ THE STORE (SUBSCRIBING THE STORE USING THE SELECTOR) 
+
+*go to header.js
+ <li>cart (0 items ) </li>
+
+*lets give item name in cartSlice.js
+initialState: {
+            items: ["Burger","Pizza","Idli", "vada"]
+        },
+
+*use selector in header.js
+
+7.USE SELECTOR IN HEADER.JS
+*selector is nothing but hook
+*import useSelector hook from react-redux
+
+    const cart = useSelector() 
+
+*use selector gives the acces to opur atore
+    const cartItems = useSelector((store) => store.cart.items);
+
+*use it
+ <li>cart ({cartItems.length} items ) </li>
+
+--------------------------------------------------------------------------------------------------------------
+live EXAMPLE
+
+7.ONCLICK OF ADD BHUTTON , WE NEED TO DISPACTH AND ACTION in listeitem.js
+1.FIRST STEP IS PERFORM THE ACTION (dispacth an action)
+*for dispacthing the action we need to use hook
+    const dispatch = useDispatch()
+*earlier we exported the action use that action
+*now will use additem action 
+*first we need to import it
+
+ const handlebutton = () =>{
+        //dispatch
+        dispatch(addItem()) //dispatch the items
+    }
+
+*and now pass our data inside the addItem
+
+   dispatch(addItem("pizza"))
+
+*whenever we dispatch the action redux will create a payload inside the object and it will take the object and pass it as the second argument
+{
+payload:"pizza"
+}
+addItem: (state, action) => { //pass it as a second argument
+                state.items.push(action.payload)
+            },
+
+
+done ----- when i click on the button it will add number in cart
+
+
+
+------------------------------------------------------------------------------
+8.WANT TO PASS ACTUAL DATA , BUILD CART PAGE
+1.in list.js
+import { useDispatch } from "react-redux";
+import { addItem } from "../utils/slice/cartSlice"
+
+
+const ListItem = (props) =>{
+
+    const {data} = props;
+    const dispatch = useDispatch()
+
+    const handlebutton = (item) =>{
+        //dispatch
+        dispatch(addItem(item))
+    }
+ 
+    return (
+        <div>
+            <ul>
+                <li className="fontsize">{data.name}</li>
+                <li className="fontsize">{data.price} rupee</li>
+                <button onClick={()=>handlebutton(data)}>add item to the cart</button>
+            </ul>
+        </div>
+    )
+}
+
+export default ListItem;
+
+2.subscribe in header
+
+3.BUILD CARD PAGE
+1.create cart , add router
+2.add cartitems in from the store in cart component
+3.or we can reuse the comp
+
+
+4.ADD ITEM TO THE CART
+const Cart = () =>{
+
+    const cartItems = useSelector((store)=>store.cart.items)
+    console.log('cartItems: ', cartItems);
+    return (
+        <div>
+            <h1>hii</h1>
+                {
+                    cartItems.map((data)=>{
+                       return <ul>
+                            <li key={data.id}>{data?.name}</li>
+                        </ul>
+                    })
+                }
+        </div>
+    )
+
+}
+
+5.CLEAR THE CART
+
+const cartItems = useSelector((store)=>store.cart.items); //always subscribe to the specific portion of the store for ex this one , this is very much effective---vvvvvimpppp interview question
+
+    const dispatch = useDispatch();
+
+
+<button onClick={clearcart}>clear the cart</button>
+
+
+
+
+
+
+//practice
+A.Inception
+ episode 1 , part 1
+1.create html file , print hello world?
+2.how to print hello world by using js?
+3.what is cdn?
+4.what is crossorigin attribute?
+5.why two libraries added in html?
+6.how to inject cdn links into project ?
+---------------------------------------------------------------------------------------
+EPSIDOE 1 PART 2
+1.how to create hwllo world by using react?.sss
+------------------------------------------------------------------------------------
+EPISODE 1 PART 3
+1.write js code separatly , 
+2.how to add css into it?
+3.what is React.createElemnt(); what it returns?
+4.what is React.render(); how it works?
+-------------------------------------------------------------------
+episode 1 part 4
+1.how to create nested element?
+<div id="parent">
+    <div id="child">
+        <h1>
+
+        </h1>
+    </div>
+</div>
+
+2..<div id="parent">
+    <div id="child">
+        <h1> hi 1</h1>
+        <h1> hi 2</h1>
+    </div>
+</div>   how to create siblings of one child?
+
+-----------------------------------------------------------------------------------------------------------------
+episode 1 , part 5
+1does order of html code matters?
+2if i alreday have children in root in index.html how it works?
+3.<body>
+    <h1>geee</h1>
+    <div id="root">
+        <h1>hii</h1>
+    </div>
+    <div>jjjjj</div>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <script src="./App.js">
+    </script>
+</body>
+
+in js 
+const parent = React.createElement("div", { id: "parent" },
+    React.createElement("div", { id: "child" },
+        [
+            React.createElement("h1", {}, "hiiii h1"),
+            React.createElement("h2", {}, "hiiii h2")
+        ]
+    )
+);
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(parent);  ehat is the output?
+-----------------------------------------------------------------------------------------------------------------
+● What is Emmet?
+● Difference between a Library and Framework?
+● What is CDN? Why do we use it?
+● Why is React known as React?
+● What is crossorigin in script tag?
+● What is diference between React and ReactDOM
+● What is difference between react.development.js and react.production.js files via CDN?
+● What is async and defer? - see my Youtube video ;)
+
+end episode 1
+------------------------------------------------------------------------------------------------------------------------
+Episode 2 part 1
+1.what is npm?
+2.what is package.json?
+3.why do we need package.json?
+4.what is bundler? name those
+5.what is caret? how it works?
+6.what is the difference between tilde and caret?imp interview questions.
+7what is the differnece between package json and package-lock json?
+8..what is the differnece between package json and package-lock json?
+7.what is integrity in package-lock json?
+8.what is there in nodemodules?
+9.what is  transitive dependency ?
+10.what is gitignore?
+11.why do we prefer parcel and uses ?
+12.what is HMR?
+
+- What is `NPM`?
+● - What is `Parcel/Webpack`? Why do we need it?
+● - What is `.parcel-cache`
+● - What is `npx` ?
+● - What is difference between `dependencies` vs `devDependencies`
+● - What is Tree Shaking?
+● - What is Hot Module Replacement?
+● - List down your favourite 5 superpowers of Parcel and describe any 3 of them in your
+own words.
+● - What is `.gitignore`? What should we add and not add into it?
+● - What is the difference between `package.json` and `package-lock.json`
+● - Why should I not modify `package-lock.json`?
+● - What is `node_modules` ? Is it a good idea to push that on git?
+● - What is the `dist` folder?
+● - What is `browserlists`
+Read about dif bundlers: vite, webpack, parcel
+● Read about: ^ - caret and ~ - tilda
+● Read about Script types in html (MDN Docs)
+
+-------------------------------------------------------------------------------------------------------------------
+EPISODE 3 
+1HOW TO CREATING SCRIPT FOR PRODUCTION AND DEV?
+2.what is jsx? 
+3.what is babel? how it works?
+4.how to add class and attribute using jsx?
+5.what is functinal component?write its syntax?
+6.what is component composition?
+7.how to put element insdie a component?
+
+● What is JSX?
+● Superpowers of JSX
+● Role of type attribute in script tag? What options can I use there?
+● {TitleComponent} vs {<TitleComponent/>} vs
+{<TitleComponent></TitleComponent>} in JSX
+
+Coding Assignment:
+● Create a Nested header Element using React.createElement(h1,h2,h3 inside a
+div with class “title”)
+○ Create the same element using JSX
+○ Create a functional component of the same with JSX
+○ Pass attributes into the tag in JSX
+○ Composition of Component(Add a component inside another)
+○ {TitleComponent} vs {<TitleComponent/>} vs
+{<TitleComponent></TitleComponent>} in JSX
+● Create a Header Component from scratch using Functional Components with
+JSX
+○ Add a Logo on left
+○ Add a search bar in middle
+○ Add User icon on right
+○ Add CSS to make it look nice
+------------------------------------------------------------------------------------
+
+EPISODE 4
+1.what is props?
+2.how to pass data from parent to child using props? by using array of object
+
+  Assignment
+● Is JSX mandatory for React?
+● Is ES6 mandatory for React?
+● {TitleComponent} vs {<TitleComponent/>} vs
+{<TitleComponent></TitleComponent>} in JSX
+● How can I write comments in JSX?
+● What is <React.Fragment></React.Fragment> and <></> ?
+● What is Virtual DOM?
+● What is Reconciliation in React?
+● What is React Fiber?
+● Why we need keys in React? When do we need keys in React?
+● Can we use index as keys in React?
+● What is props in React? Ways to
+● What is a Config Driven UI ?
+
+
+Coding Assignment:
+● Build a Food Ordering App
+○ Think of a cool name for your app
+○ Build a AppLayout
+○ Build a Header Component with Logo & Nav Items & Cart
+○ Build a Body Component
+○ Build RestaurantList Component
+○ Build RestaurantCard Component
+○ Use static data initially
+○ Make your card dynamic(pass in props)
+○ Props - passing arguments to a function - Use Destructuring & Spread
+operator
+○ Render your cards with dynamic data of restaurants
+○ Use Array.map to render all the restaurants
+
+----------------------------------------------------------------------------------------------------------------------------
+EPISODE 5
+1.what is named export?
+2.how to import named export?
+3.name 2 types of export? and how to im[port it?
+4.LIST event handler ? and syntax
+5.what is state variable , when it is used , why it is used?
+6.what is react hookr?name two important hooks? AND EXPLAIN , how dom and ui is connecting
+
+
+● What is the difference between Named Export, Default export and * as export?
+● What is the importance of config.js file
+● What are React Hooks?
+● Why do we need a useState Hook?
+Coding Assignment:
+● Clean up your code
+● Create a Folder Structure for your app
+● Make different files for each Components
+● Create a config file
+● Use all types of import and export
+● Create a Search Box in your App
+● Use useState to create a variable and bind it to the input box
+● Try to make your search bar work
+
+--------------------------------------------------------------------------------------------------------------------------------------
+EPISODE 6
+1.what is use effect , how it iused , when it is called?
+2.how to fetch the api
+3.use swiggy api , remove hardcoded data
+4.HOW to use shimmer ui?
+5.why use state variabel used instaed of normal variable?
+6.CREATE BUTTON LOGIN CLICK ON IT LOGOUT AGAIN click on it login so on
+7.Create search functinality
+Chapter 06 - Exploring the world
+● What is a Microservice?
+● What is Monolith architecture?
+● What is the difference between Monolith and Microservice?
+● Why do we need a useEffect Hook?
+● What is Optional Chaining?
+● What is Shimmer UI?
+● What is the difference between JS expression and JS statement
+● What is Conditional Rendering, explain with a code example
+● What is CORS?
+● What is async and await?
+● What is the use of `const json = await data.json();` in getRestaurants()
+Coding Assignment :
+● Play with the useEffect Hook to see when it is called?(before or after render)
+● Play with dependency array in useEffect Hook
+● Play with the developer console by putting a debugger in render and useEffect
+● Call an actual API to get data
+● Handle Error in your API call
+● Build Shimmer UI when data in not loaded
+● Render your UI with actual API data
+● Make Search functionality work
+● Make a Login Logout button which toggles with a state
+-------------------------------------------------------------------------------------------------------------------
+episode 7. ROUTING
+Chapter 07 - Finding the Path
+Assignment
+● What are various ways to add images into our App? Explain with code examples
+● What would happen if we do console.log(useState())?
+● How will useEffect behave if we don't add a dependency array ?
+● What is SPA?
+● What is difference between Client Side Routing and Server Side Routing?
+
+Coding Assignment:
+● Add Shimmer Effect without installing a library
+● Install react-router-dom
+● Create a appRouter and Provide it to the app
+● Create a Home, About, Contact Page with Link (use child routes)
+● Make a Error page for routing errors
+● Create a Restaurant Page with dynamic restaurant ID
+● (Extra) - Create a login Page using Formik Library
+
+
+1.what is useeffect() , when it ois called , explain 3 cases 
+2.what is the work of dependecy array
+3.how to install react router?
+4.HOW TO USE THIS LIBRARY ?
+5.create invalid path 
+6.How to create children routes? keep it header constant
+7.what is outlet?
+8.How to rdirect to particular page on clicking?
+9.what is link tag?
+
+task
+1.when u click on particular card , navigate to next page with full details
+--------------------------------------------------------------------------------------------------------------------------------
+8.EPISODE 8 CLASS BASED COMPONE
+Theory Assignment:
+● How do you create Nested Routes react-router-dom cofiguration
+● Read abt createHashRouter, createMemoryRouter from React Router docs.
+● What is the order of life cycle method calls in Class Based Components
+● Why do we use componentDidMount?
+● Why do we use componentWillUnmount? Show with example
+● (Research) Why do we use super(props) in constructor?
+● (Research) Why can't we have the callback function of useEffect async?
+Coding Assignment:
+● Create a Class Based Component
+○ Create 2 class based child components
+○ Pass props from Parent to child
+○ Create a constructor
+○ Create a state variable inside child
+○ Use this.setState to update it
+○ What if there are multiple state variables?
+○ Write a console.log for each lifecycle method
+○ Play with the console logs to find out the correct order of their execution
+● Create interval inside componentDidMount?
+○ Use clearInterval to fix the issue caused by that interval
+
+1.how to write class based component?
+2.how to pass props by using class compoent?
+3.why we need super ()?
+4.how to create state variable in class component?
+5.how to update state variable in class component?
+6 .give the order - What is the order of life cycle method calls in Class Based Components
+ans:
+About.js:23 ---parent constructor
+About.js:23 -----parent render
+UserClass.js:12 ----child constructor
+UserClass.js:21 ---child render
+UserClass.js:16 ---chiled componentDidMount: 
+About.js:17 ------parent componentDidMount:  //at the end it is called
+7.what is the use of componentDidMount(); why?
+8.what is the use og componentDidUpdate and componentWillUnmount()?
+
+----------------------------------------------------------------------------------------------------------------
+EPIDOE 9 - optimizing the app
+ 
+Theory -
+● When and why do we need lazy()?
+● What is suspense?
+● Why we got this error : A component suspended while responding to
+synchronous input. This will cause the UI to be replaced with a loading indicator.
+To fix, updates that suspend should be wrapped with startTransition? How does
+suspense fix this error?
+● Advantages and disadvantages of using this code splitting pattern?
+● When do we and why do we need suspense?
+Coding -
+● Create your custom hooks
+● Try out lazy and suspense
+● Make your code clean.
+
+1.how to use custom hooks , why it is needed?
+2.create online offline ststus 
+3.what is code chunking , or CHUNKING OR DYNAMIC BUDLING OR LAZY LOADING OR ONDEMAND LOADING ?
+4.how to do lazy loading?
+-----------------------------------------------------------------------------------------------------------
+EPISODE 10 -- JO DIKTHA HAI
+
+Theory:
+● Explore all the ways of writing css.
+● How do we configure tailwind?
+● In tailwind.config.js, what does all the keys mean (content, theme, extend,
+plugins)?
+● Why do we have .postcssrc file?
+Coding:
+● Configure Tailwind and try to build your whole app using tailwind.
+
+1.what is sass and tailwind?
+2.how to insatll tailwind ? what is postcss?
+3.npx tailwindcss init ? use of this
+---------------------------------------------------------------------------------------------------
+Chapter 11 - Data is the new Oil
+
+Theory:
+● What is prop drillingor component chaining? -- vvimpp
+● What is lifting the state up? (controlled and uncontrolled) - vvimp 
+● What is Context Provider and Context Consumer?
+● If you don’t pass a value to the provider does it take the default value?
+Coding:
+● Practice React Context with code examples
+● Try out Nested Contexts
+
+1.what is higher order function?
+2.how to create higher ordeer function , how to pass data and recive data?
+3.create accordian , when i click on title it should expand, all should not expand , when i click on another one , previous one should not expand.
+4.what hook is used for context api ? how it works
+5.how to use context api in class based comppnent?
+6.what are the two ways to access the context?
+7.what is tthe difference between redux and context api?
+-------------------------------------------------------------------------------------------------------------------
+Chapter 12 - Let's Build our Store
+Theory:
+● useContext vs Redux.
+● Advantage of using Redux Toolkit over Redux.
+● Explain Dispatcher.
+● Explain Reducer.
+● Explain slice.
+● Explain selector.
+● Explain createSlice and the configuration it takes.
+Coding:
+● Practice making a store, slices and do read and write operations using Redux
+Store
+● Build Cart Flow using Redux Store
+
+1.how to INSTALL REDUX TOOLKIT AND REACT-REDUX?
+2.how to .CREATE OUR STORE ?
+3.ADD THIS STORE TO OUR APPLICATION?
+4.HOW TO ADD SLICE TO OUR STORE?
+5.WHAT IS THE DIFF BTWEEN THESE THREE
+<button onClick={handlebutton}>add item to the cart</button>
+ <button onClick={handlebutton(item)}>add item to the cart</button>
+ <button onClick={() =>{handlebutton(item)}}>add item to the cart</button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+ 
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+
+
+
 
